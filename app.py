@@ -1,23 +1,31 @@
+# app.py
 import streamlit as st
-from sentiment_utils import get_reviews_amazon, analyze_reviews
-import plotly.express as px
+from scraper import get_reviews_amazon
+from analyzer import analyze_reviews
+from visualizer import plot_sentiment_distribution
 
-st.set_page_config(page_title="Sentilyze")
-st.title("📊 Sentiment-Powered Product Review Summarizer")
+st.title("🧠 Sentiment-Powered Product Review Summarizer")
 
-url = st.text_input("Enter Amazon Product URL")
+product_url = st.text_input("Enter Amazon Product URL")
 
-if st.button("Analyze"):
-    with st.spinner("Scraping and analyzing reviews..."):
-        reviews = get_reviews_amazon(url)
-        df = analyze_reviews(reviews)
+if product_url:
+    with st.spinner("Scraping reviews..."):
+        reviews = get_reviews_amazon(product_url)
 
-        st.success(f"Analyzed {len(df)} reviews!")
-        
-        fig = px.pie(df, names=df['sentiment'], title='Sentiment Distribution')
-        st.plotly_chart(fig)
+    with st.spinner("Analyzing sentiment..."):
+        summary, insights = analyze_reviews(reviews)
 
-        st.subheader("Sample Reviews")
-        for r in df.head(10).itertuples():
-            st.write(f"🗨️ {r.review} → *{r.sentiment}*")
+    st.subheader("📊 Sentiment Summary")
+    st.write(f"""
+        - Positive: {summary['positive']}  
+        - Neutral: {summary['neutral']}  
+        - Negative: {summary['negative']}
+    """)
+
+    st.plotly_chart(plot_sentiment_distribution(summary))
+
+    st.subheader("📝 Top Reviews")
+    for review, sentiment in insights[:10]:
+        st.write(f"**[{sentiment.upper()}]** {review}")
+
 
