@@ -1,6 +1,5 @@
 streamlit
 beautifulsoup4
-vaderSentiment
-plotly
 requests
-
+textblob
+plotly
